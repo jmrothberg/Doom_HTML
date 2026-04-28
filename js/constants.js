@@ -28,8 +28,127 @@ export const PLAYER_SETTINGS = {
     INITIAL_SCORE: 0
 };
 
-// Weapon settings
-export const WEAPONS = ['Pistol', 'Shotgun', 'Plasma Gun'];
+/** Cycle order (HUD keys match WEAPON_FRAMES). Stats applied in main.js */
+export const WEAPON_ORDER = [
+    'pistol',
+    'shotgun',
+    'super_shotgun',
+    'chaingun',
+    'rocket',
+    'plasma',
+    'bfg',
+    'chainsaw',
+    'fist'
+];
+
+/**
+ * range = max hit distance (same units as player/monster x,y).
+ * coneHalf = aim tolerance radians (wider for shotguns & melee).
+ * cooldownFrames = ticks before next shot (weaponHudFrameIndex uses this for 3-frame cycle).
+ */
+export const WEAPON_DEFINITIONS = {
+    pistol: {
+        label: 'Pistol',
+        damage: 14,
+        range: 9,
+        coneHalf: Math.PI / 6,
+        spread: 0.015,
+        cooldownFrames: 12,
+        ammoPerShot: 1,
+        crosshairColor: '#66FF66',
+        crosshairSize: 10
+    },
+    shotgun: {
+        label: 'Shotgun',
+        damage: 32,
+        range: 5.5,
+        coneHalf: Math.PI / 4.2,
+        spread: 0.06,
+        cooldownFrames: 26,
+        ammoPerShot: 2,
+        crosshairColor: '#FFAA44',
+        crosshairSize: 16
+    },
+    super_shotgun: {
+        label: 'Super Shotgun',
+        damage: 48,
+        range: 4.2,
+        coneHalf: Math.PI / 4,
+        spread: 0.09,
+        cooldownFrames: 34,
+        ammoPerShot: 4,
+        crosshairColor: '#CC8844',
+        crosshairSize: 18
+    },
+    chaingun: {
+        label: 'Chaingun',
+        damage: 9,
+        range: 10,
+        coneHalf: Math.PI / 7,
+        spread: 0.04,
+        cooldownFrames: 6,
+        ammoPerShot: 1,
+        crosshairColor: '#FFFF66',
+        crosshairSize: 14
+    },
+    rocket: {
+        label: 'Rocket Launcher',
+        damage: 95,
+        range: 16,
+        coneHalf: Math.PI / 8,
+        spread: 0.02,
+        cooldownFrames: 42,
+        ammoPerShot: 5,
+        crosshairColor: '#FF6644',
+        crosshairSize: 22
+    },
+    plasma: {
+        label: 'Plasma Gun',
+        damage: 22,
+        range: 11,
+        coneHalf: Math.PI / 6.5,
+        spread: 0.06,
+        cooldownFrames: 14,
+        ammoPerShot: 2,
+        crosshairColor: '#44FFFF',
+        crosshairSize: 18
+    },
+    bfg: {
+        label: 'BFG 9000',
+        damage: 88,
+        range: 12,
+        coneHalf: Math.PI / 5.5,
+        spread: 0.08,
+        cooldownFrames: 72,
+        ammoPerShot: 8,
+        crosshairColor: '#66FF66',
+        crosshairSize: 28
+    },
+    chainsaw: {
+        label: 'Chainsaw',
+        damage: 20,
+        range: 1.75,
+        coneHalf: Math.PI / 3,
+        spread: 0,
+        cooldownFrames: 5,
+        ammoPerShot: 0,
+        crosshairColor: '#CC3333',
+        crosshairSize: 12
+    },
+    fist: {
+        label: 'Fist',
+        damage: 12,
+        range: 1.05,
+        coneHalf: Math.PI / 2.8,
+        spread: 0,
+        cooldownFrames: 20,
+        ammoPerShot: 0,
+        crosshairColor: '#AAAAAA',
+        crosshairSize: 14
+    }
+};
+
+export const WEAPONS = WEAPON_ORDER.map((k) => WEAPON_DEFINITIONS[k].label);
 
 // Raycasting settings
 export const RAY_SETTINGS = {
@@ -53,24 +172,54 @@ export const POWERUP_SETTINGS = {
     MAX_POWERUPS: 10
 };
 
-// Asset paths (matching assetLoader.js). HUD weapons: 3 transparent PNGs each (from tools/process_doom_weapon_jpegs.py).
+// Asset paths (matching assetLoader.js). HUD: 3 PNGs each — slice_hud_weapon_atlas.py from BEDB6217 atlas (9 weapon columns × 3 frames).
 export const ASSETS = {
     IMAGES: {},
     WEAPON_FRAMES: {
         pistol: [
-            'assets/weapons/doom/pistol_0.png',
-            'assets/weapons/doom/pistol_1.png',
-            'assets/weapons/doom/pistol_2.png'
+            'assets/weapons/hud_atlas/pistol_0.png',
+            'assets/weapons/hud_atlas/pistol_1.png',
+            'assets/weapons/hud_atlas/pistol_2.png'
         ],
-        machinegun: [
-            'assets/weapons/doom/machinegun_0.png',
-            'assets/weapons/doom/machinegun_1.png',
-            'assets/weapons/doom/machinegun_2.png'
+        chaingun: [
+            'assets/weapons/hud_atlas/chaingun_0.png',
+            'assets/weapons/hud_atlas/chaingun_1.png',
+            'assets/weapons/hud_atlas/chaingun_2.png'
         ],
         plasma: [
-            'assets/weapons/doom/plasma_0.png',
-            'assets/weapons/doom/plasma_1.png',
-            'assets/weapons/doom/plasma_2.png'
+            'assets/weapons/hud_atlas/plasma_0.png',
+            'assets/weapons/hud_atlas/plasma_1.png',
+            'assets/weapons/hud_atlas/plasma_2.png'
+        ],
+        shotgun: [
+            'assets/weapons/hud_atlas/shotgun_0.png',
+            'assets/weapons/hud_atlas/shotgun_1.png',
+            'assets/weapons/hud_atlas/shotgun_2.png'
+        ],
+        super_shotgun: [
+            'assets/weapons/hud_atlas/super_shotgun_0.png',
+            'assets/weapons/hud_atlas/super_shotgun_1.png',
+            'assets/weapons/hud_atlas/super_shotgun_2.png'
+        ],
+        rocket: [
+            'assets/weapons/hud_atlas/rocket_0.png',
+            'assets/weapons/hud_atlas/rocket_1.png',
+            'assets/weapons/hud_atlas/rocket_2.png'
+        ],
+        bfg: [
+            'assets/weapons/hud_atlas/bfg_0.png',
+            'assets/weapons/hud_atlas/bfg_1.png',
+            'assets/weapons/hud_atlas/bfg_2.png'
+        ],
+        chainsaw: [
+            'assets/weapons/hud_atlas/chainsaw_0.png',
+            'assets/weapons/hud_atlas/chainsaw_1.png',
+            'assets/weapons/hud_atlas/chainsaw_2.png'
+        ],
+        fist: [
+            'assets/weapons/hud_atlas/fist_0.png',
+            'assets/weapons/hud_atlas/fist_1.png',
+            'assets/weapons/hud_atlas/fist_2.png'
         ]
     },
     SPRITE_MANIFEST: 'assets/better/sprites.json',

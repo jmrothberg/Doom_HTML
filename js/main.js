@@ -1,7 +1,7 @@
 import { NetworkManager } from './networking.js';
 import { assetLoader } from './assetLoader.js';
 import { drawSpriteFrame } from './spriteAtlas.js';
-import { MONSTER_SETTINGS } from './constants.js';
+import { MONSTER_SETTINGS, WEAPON_ORDER, WEAPON_DEFINITIONS } from './constants.js';
 
 class Game {
     constructor(canvas) {
@@ -51,15 +51,17 @@ class Game {
         this.playerScore = 0;
         this.playerAmmo = 100;
         
-        // Weapons
-        this.weapons = ['pistol', 'machinegun', 'plasma'];
+        // Weapons — 9 types; HUD uses three PNG frames each (WEAPON_FRAMES + WEAPON_DEFINITIONS).
+        this.weapons = [...WEAPON_ORDER];
         this.currentWeapon = 0;
         this.weaponCooldown = 0;
         this.weaponSpread = 0.01;
         this.weaponDamage = 10;
         this.weaponCooldownTime = 10;
         this.weaponAmmoUsage = 1;
-        // HUD weapons: three transparent PNG frames per gun (see ASSETS.WEAPON_FRAMES + process_doom_weapon_jpegs.py)
+        this.weaponRange = 8;
+        this.weaponConeHalf = Math.PI / 6;
+        this.applyWeaponStatsFromCurrent();
         
         // Monsters (sprites from atlases in assets/better/sprites.json — draw via assetLoader.getAtlasCell)
         this.monsters = [];
@@ -125,11 +127,11 @@ class Game {
         });
         document.addEventListener('keyup', (e) => this.keys[e.key] = false);
         
-        // Mouse click for weapon switching (not shooting)
+        // Desktop: left-click outside mobile controls cycles weapons (must NOT bubble from #mobileControls or each click fires twice with the Weapon button).
         document.addEventListener('mousedown', (e) => {
-            if (e.button === 0) { // Left click
-                this.switchWeapon();
-            }
+            if (e.button !== 0) return;
+            if (e.target.closest('#mobileControls')) return;
+            this.switchWeapon();
         });
         
         // Game clock
@@ -384,39 +386,37 @@ class Game {
 
     switchWeapon() {
         this.currentWeapon = (this.currentWeapon + 1) % this.weapons.length;
-        
-        // Update weapon properties based on type (matching Python version)
-        if (this.weapons[this.currentWeapon] === 'pistol') {
-            this.weaponSpread = 0.01;
-            this.weaponDamage = 10;
-            this.weaponCooldownTime = 10;
-            this.weaponAmmoUsage = 1;     // Added ammo usage
-            this.crosshairColor = '#00FF00';  // GREEN
-            this.crosshairSize = 10;
-        } else if (this.weapons[this.currentWeapon] === 'machinegun') {
-            this.weaponSpread = 0.05;
-            this.weaponDamage = 20;
-            this.weaponCooldownTime = 20;
-            this.weaponAmmoUsage = 2;     // Added ammo usage
-            this.crosshairColor = '#FFFF00';  // YELLOW
-            this.crosshairSize = 20;
-        } else if (this.weapons[this.currentWeapon] === 'plasma') {
-            this.weaponSpread = 0.1;
-            this.weaponDamage = 40;
-            this.weaponCooldownTime = 40;
-            this.weaponAmmoUsage = 4;     // Added ammo usage
-            this.crosshairColor = '#00FFFF';  // CYAN
-            this.crosshairSize = 40;
-        }
+        this.applyWeaponStatsFromCurrent();
+    }
+
+    /** Sync damage, range, cone, ammo cost, cooldown length, crosshair from WEAPON_DEFINITIONS */
+    applyWeaponStatsFromCurrent() {
+        const key = this.weapons[this.currentWeapon];
+        const def = WEAPON_DEFINITIONS[key];
+        if (!def) return;
+        this.weaponDamage = def.damage;
+        this.weaponRange = def.range;
+        this.weaponConeHalf = def.coneHalf;
+        this.weaponSpread = def.spread;
+        this.weaponCooldownTime = def.cooldownFrames;
+        this.weaponAmmoUsage = def.ammoPerShot;
+        this.crosshairColor = def.crosshairColor;
+        this.crosshairSize = def.crosshairSize;
     }
 
     shoot() {
-        if (this.weaponCooldown === 0 && this.playerAmmo >= this.weaponAmmoUsage) {
+        const ammoCost = this.weaponAmmoUsage;
+        const canFire =
+            this.weaponCooldown === 0 &&
+            (ammoCost === 0 || this.playerAmmo >= ammoCost);
+        if (canFire) {
             if (this.debug) console.log('Shooting! Ammo:', this.playerAmmo);
             this.shootSound.currentTime = 0;
             this.shootSound.play().catch(e => console.log('Sound play error:', e));
             this.weaponCooldown = this.weaponCooldownTime;
-            this.playerAmmo -= this.weaponAmmoUsage;
+            if (ammoCost > 0) {
+                this.playerAmmo -= ammoCost;
+            }
             
             // Find closest player
             let closestPlayer = null;
@@ -445,7 +445,7 @@ class Game {
             });
             
             // Hit the closer of the two
-            if (closestPlayerDist < closestMonsterDist) {
+            if (closestPlayer && closestPlayerDist < closestMonsterDist) {
                 // Check player hit (existing code)
                 const dx = closestPlayer.x - this.playerX;
                 const dy = closestPlayer.y - this.playerY;
@@ -453,7 +453,7 @@ class Game {
                 while (angle < -Math.PI) angle += 2 * Math.PI;
                 while (angle > Math.PI) angle -= 2 * Math.PI;
                 
-                if (closestPlayerDist < 8 && Math.abs(angle) < Math.PI/6) {
+                if (closestPlayerDist < this.weaponRange && Math.abs(angle) < this.weaponConeHalf) {
                     if (this.debug) console.log('Hit player!', closestPlayer.id);
                     if (this.networkManager) {
                         this.networkManager.sendPlayerHit(closestPlayer.id, this.weaponDamage);
@@ -470,7 +470,11 @@ class Game {
                     while (angle < -Math.PI) angle += 2 * Math.PI;
                     while (angle > Math.PI) angle -= 2 * Math.PI;
                     
-                    if (distance < 8 && Math.abs(angle) < Math.PI / 6 && monster.animState !== 'death') {
+                    if (
+                        distance < this.weaponRange &&
+                        Math.abs(angle) < this.weaponConeHalf &&
+                        monster.animState !== 'death'
+                    ) {
                         console.log('Hit monster!', monster.health);
                         monster.health -= this.weaponDamage;
                         monster.animTime = 0;
@@ -946,7 +950,13 @@ class Game {
         this.ctx.fillText(`Health: ${this.playerHealth}`, rightAlign, 30);
         this.ctx.fillText(`Ammo: ${this.playerAmmo}`, rightAlign, 60);
         this.ctx.fillText(`Score: ${this.playerScore}`, rightAlign, 90);
-        this.ctx.fillText(`Weapon: ${this.weapons[this.currentWeapon].charAt(0).toUpperCase() + this.weapons[this.currentWeapon].slice(1)}`, rightAlign, 120);
+        const wIdx = this.currentWeapon + 1;
+        const wTotal = this.weapons.length;
+        this.ctx.fillText(
+            `Weapon: ${WEAPON_DEFINITIONS[this.weapons[this.currentWeapon]].label} (${wIdx}/${wTotal})`,
+            rightAlign,
+            120
+        );
 
         // List competing players (their health, etc.)
         let hudOffsetY = 150;
@@ -1168,6 +1178,17 @@ window.addEventListener('load', async () => {
     
     game.start();
 
+    // Weapon button always wired (not gated on other controls) — one pointerdown = one slot.
+    const btnWeapon = document.getElementById('btn-weapon');
+    if (btnWeapon) {
+        btnWeapon.addEventListener('pointerdown', (e) => {
+            if (e.button !== 0 && e.button !== -1) return;
+            e.preventDefault();
+            e.stopPropagation();
+            game.switchWeapon();
+        });
+    }
+
     // Add mobile control event listeners for touch devices (iPhone/iPad)
     const btnUp = document.getElementById('btn-up');
     const btnDown = document.getElementById('btn-down');
@@ -1223,19 +1244,6 @@ window.addEventListener('load', async () => {
             game.shoot();
             e.preventDefault();
         });
-
-        // Weapon button: trigger weapon switch on touchstart/mousedown
-        const btnWeapon = document.getElementById('btn-weapon');
-        if (btnWeapon) {
-            btnWeapon.addEventListener('touchstart', (e) => {
-                game.switchWeapon();
-                e.preventDefault();
-            });
-            btnWeapon.addEventListener('mousedown', (e) => {
-                game.switchWeapon();
-                e.preventDefault();
-            });
-        }
 
         // Add event listeners for Restart and Exit buttons (only for mobile)
         const btnRestart = document.getElementById('btn-restart');

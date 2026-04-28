@@ -1,0 +1,109 @@
+{
+  "version": 2,
+  "clips": {
+    "monster1": {
+      "idle": [
+        "assets/sprites/monster1/frame_00.png",
+        "assets/sprites/monster1/frame_01.png"
+      ],
+      "walk": [
+        "assets/sprites/monster1/frame_04.png",
+        "assets/sprites/monster1/frame_05.png",
+        "assets/sprites/monster1/frame_06.png",
+        "assets/sprites/monster1/frame_07.png",
+        "assets/sprites/monster1/frame_08.png",
+        "assets/sprites/monster1/frame_09.png",
+        "assets/sprites/monster1/frame_10.png",
+        "assets/sprites/monster1/frame_11.png"
+      ],
+      "attack": [
+        "assets/sprites/monster1/frame_02.png",
+        "assets/sprites/monster1/frame_03.png"
+      ],
+      "hurt": [
+        "assets/sprites/monster1/frame_12.png"
+      ],
+      "death": [
+        "assets/sprites/monster1/frame_12.png",
+        "assets/sprites/monster1/frame_13.png",
+        "assets/sprites/monster1/frame_14.png",
+        "assets/sprites/monster1/frame_15.png"
+      ]
+    },
+    "monster2": {
+      "idle": [
+        "assets/sprites/monster2/frame_00.png",
+        "assets/sprites/monster2/frame_01.png"
+      ],
+      "walk": [
+        "assets/sprites/monster2/frame_04.png",
+        "assets/sprites/monster2/frame_05.png",
+        "assets/sprites/monster2/frame_06.png",
+        "assets/sprites/monster2/frame_07.png",
+        "assets/sprites/monster2/frame_08.png",
+        "assets/sprites/monster2/frame_09.png",
+        "assets/sprites/monster2/frame_10.png",
+        "assets/sprites/monster2/frame_11.png"
+      ],
+      "attack": [
+        "assets/sprites/monster2/frame_02.png",
+        "assets/sprites/monster2/frame_03.png"
+      ],
+      "hurt": [
+        "assets/sprites/monster2/frame_12.png"
+      ],
+      "death": [
+        "assets/sprites/monster2/frame_12.png",
+        "assets/sprites/monster2/frame_13.png",
+        "assets/sprites/monster2/frame_14.png",
+        "assets/sprites/monster2/frame_15.png"
+      ]
+    },
+    "monster3": {
+      "idle": [
+        "assets/sprites/monster3/frame_00.png",
+        "assets/sprites/monster3/frame_01.png"
+      ],
+      "walk": [
+        "assets/sprites/monster3/frame_04.png",
+        "assets/sprites/monster3/frame_05.png",
+        "assets/sprites/monster3/frame_06.png",
+        "assets/sprites/monster3/frame_07.png",
+        "assets/sprites/monster3/frame_08.png",
+        "assets/sprites/monster3/frame_09.png",
+        "assets/sprites/monster3/frame_10.png",
+        "assets/sprites/monster3/frame_11.png"
+      ],
+      "attack": [
+        "assets/sprites/monster3/frame_02.png",
+        "assets/sprites/monster3/frame_03.png"
+      ],
+      "hurt": [
+        "assets/sprites/monster3/frame_12.png"
+      ],
+      "death": [
+        "assets/sprites/monster3/frame_12.png",
+        "assets/sprites/monster3/frame_13.png",
+        "assets/sprites/monster3/frame_14.png",
+        "assets/sprites/monster3/frame_15.png"
+      ]
+    }
+  },
+  "player": {
+    "walk": [
+      "assets/sprites/player/frame_04.png",
+      "assets/sprites/player/frame_05.png",
+      "assets/sprites/player/frame_06.png",
+      "assets/sprites/player/frame_07.png",
+      "assets/sprites/player/frame_08.png",
+      "assets/sprites/player/frame_09.png",
+      "assets/sprites/player/frame_10.png",
+      "assets/sprites/player/frame_11.png"
+    ]
+  },
+  "named": {
+    "wallTile": "assets/sprites/environment/frame_09.png",
+    "healthPickup": "assets/sprites/pickups/frame_00.png",
+    "ammoPickup": "assets/sprites/pickups/frame_06.png"
+  }
+}
